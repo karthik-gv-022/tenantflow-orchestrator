@@ -9,8 +9,8 @@ interface AuthContextType {
   profile: Profile | null;
   roles: AppRole[];
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, fullName: string) => Promise<void>;
+  signInWithPhone: (phone: string) => Promise<void>;
+  verifyOtp: (phone: string, token: string) => Promise<void>;
   signOut: () => Promise<void>;
   hasRole: (role: AppRole) => boolean;
 }
@@ -70,16 +70,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+  const signInWithPhone = async (phone: string) => {
+    const { error } = await supabase.auth.signInWithOtp({ phone });
     if (error) throw error;
   };
 
-  const signUp = async (email: string, password: string, fullName: string) => {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { full_name: fullName } }
+  const verifyOtp = async (phone: string, token: string) => {
+    const { error } = await supabase.auth.verifyOtp({
+      phone,
+      token,
+      type: 'sms',
     });
     if (error) throw error;
   };
@@ -98,8 +98,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       profile,
       roles,
       loading,
-      signIn,
-      signUp,
+      signInWithPhone,
+      verifyOtp,
       signOut,
       hasRole
     }}>
