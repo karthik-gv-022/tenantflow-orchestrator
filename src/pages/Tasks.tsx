@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { KanbanBoard } from '@/components/tasks/KanbanBoard';
 import { CreateTaskDialog } from '@/components/tasks/CreateTaskDialog';
+import { EditTaskDialog } from '@/components/tasks/EditTaskDialog';
 import { useTasks } from '@/hooks/useTasks';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,12 +13,13 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
-import { Plus, Search, Loader2, LayoutGrid, List } from 'lucide-react';
+import { Plus, Search, Loader2 } from 'lucide-react';
 import { Task, TaskStatus } from '@/types';
 
 export default function Tasks() {
   const { tasks, isLoading, createTask, updateTask, deleteTask } = useTasks();
   const [createOpen, setCreateOpen] = useState(false);
+  const [editTask, setEditTask] = useState<Task | null>(null);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
@@ -34,8 +36,7 @@ export default function Tasks() {
   };
 
   const handleEdit = (task: Task) => {
-    // For now, just log - can implement edit dialog later
-    console.log('Edit task:', task);
+    setEditTask(task);
   };
 
   const handleDelete = (id: string) => {
@@ -107,6 +108,14 @@ export default function Tasks() {
           open={createOpen}
           onOpenChange={setCreateOpen}
           onSubmit={task => createTask.mutate(task)}
+        />
+
+        {/* Edit Dialog */}
+        <EditTaskDialog
+          task={editTask}
+          open={!!editTask}
+          onOpenChange={(open) => !open && setEditTask(null)}
+          onSubmit={updates => updateTask.mutate(updates)}
         />
       </div>
     </DashboardLayout>
