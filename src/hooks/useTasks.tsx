@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Task, TaskStatus, TaskPriority } from '@/types';
 import { useAuth } from './useAuth';
 import { toast } from 'sonner';
+import { useEffect } from 'react';
 
 export function useTasks() {
   const queryClient = useQueryClient();
@@ -22,6 +23,33 @@ export function useTasks() {
     },
     enabled: !!profile?.tenant_id
   });
+
+  // Real-time subscription
+  useEffect(() => {
+    if (!profile?.tenant_id) return;
+
+    const channel = supabase
+      .channel('tasks-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'tasks',
+          filter: `tenant_id=eq.${profile.tenant_id}`
+        },
+        (payload) => {
+          console.log('Realtime update:', payload);
+          // Invalidate and refetch tasks
+          queryClient.invalidateQueries({ queryKey: ['tasks'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [profile?.tenant_id, queryClient]);
 
   const createTask = useMutation({
     mutationFn: async (task: {

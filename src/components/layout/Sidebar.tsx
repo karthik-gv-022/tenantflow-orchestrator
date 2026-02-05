@@ -25,6 +25,7 @@ const navItems = [
   { path: '/team', label: 'Team', icon: Users },
   { path: '/alerts', label: 'Alerts', icon: AlertTriangle },
   { path: '/audit', label: 'Audit Log', icon: History },
+  { path: '/settings', label: 'Settings', icon: Settings },
 ];
 
 export function Sidebar() {
@@ -102,24 +103,14 @@ export function Sidebar() {
           )}
         </div>
 
-        <div className="mt-2 flex gap-1">
-          {!collapsed && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="flex-1 justify-start text-sidebar-foreground hover:bg-sidebar-accent"
-            >
-              <Settings className="w-4 h-4 mr-2" />
-              Settings
-            </Button>
-          )}
+        <div className="mt-2">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => signOut()}
             className={cn(
-              'text-sidebar-foreground hover:bg-sidebar-accent hover:text-destructive',
-              collapsed && 'w-full justify-center'
+              'w-full text-sidebar-foreground hover:bg-sidebar-accent hover:text-destructive',
+              collapsed ? 'justify-center' : 'justify-start'
             )}
           >
             <LogOut className="w-4 h-4" />

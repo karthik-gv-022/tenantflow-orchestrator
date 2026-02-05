@@ -12,6 +12,7 @@ import Projects from "./pages/Projects";
 import Team from "./pages/Team";
 import Alerts from "./pages/Alerts";
 import Audit from "./pages/Audit";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import { ReactNode } from "react";
 
@@ -81,6 +82,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <Audit />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <ProtectedRoute>
+            <Settings />
           </ProtectedRoute>
         }
       />
