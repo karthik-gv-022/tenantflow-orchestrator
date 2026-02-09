@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -12,12 +12,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { lovable } from '@/integrations/lovable';
 import { Separator } from '@/components/ui/separator';
 import { CountryCodeSelector } from '@/components/auth/CountryCodeSelector';
+import { detectCountryCode } from '@/lib/detectCountry';
 
 export default function Auth() {
   const { user, loading } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [step, setStep] = useState<'phone' | 'otp'>('phone');
-  const [countryCode, setCountryCode] = useState('+91');
+  const [countryCode, setCountryCode] = useState(() => detectCountryCode());
   const [phoneNumber, setPhoneNumber] = useState('');
   const [formattedPhone, setFormattedPhone] = useState('');
   const [otp, setOtp] = useState('');
