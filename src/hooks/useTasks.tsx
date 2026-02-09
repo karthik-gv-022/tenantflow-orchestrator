@@ -4,6 +4,7 @@ import { Task, TaskStatus, TaskPriority } from '@/types';
 import { useAuth } from './useAuth';
 import { toast } from 'sonner';
 import { useEffect } from 'react';
+import { logActivity } from './useActivityFeed';
 
 export function useTasks() {
   const queryClient = useQueryClient();
@@ -72,10 +73,37 @@ export function useTasks() {
         .select()
         .single();
       if (error) throw error;
+
+      // Log activity
+      if (user && profile?.tenant_id) {
+        await logActivity({
+          tenantId: profile.tenant_id,
+          userId: user.id,
+          action: 'created',
+          entityType: 'task',
+          entityId: data.id,
+          entityTitle: data.title
+        });
+
+        // Notify assignee if assigned
+        if (task.assignee_id && task.assignee_id !== user.id) {
+          await supabase.from('notifications').insert([{
+            user_id: task.assignee_id,
+            tenant_id: profile.tenant_id,
+            type: 'assignment',
+            title: 'New task assigned',
+            message: `${profile.full_name || profile.email} assigned you to "${data.title}"`,
+            entity_type: 'task',
+            entity_id: data.id
+          }]);
+        }
+      }
+
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['activity-feed'] });
       toast.success('Task created successfully');
     },
     onError: (error: Error) => {
@@ -102,10 +130,29 @@ export function useTasks() {
         .select()
         .single();
       if (error) throw error;
+
+      // Log activity
+      if (user && profile?.tenant_id) {
+        const action = updates.status ? 
+          (updates.status === 'completed' ? 'completed' : 'status_changed') : 
+          'updated';
+        
+        await logActivity({
+          tenantId: profile.tenant_id,
+          userId: user.id,
+          action,
+          entityType: 'task',
+          entityId: id,
+          entityTitle: data.title,
+          metadata: updates.status ? { new_status: updates.status } : {}
+        });
+      }
+
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['activity-feed'] });
       toast.success('Task updated successfully');
     },
     onError: (error: Error) => {
@@ -115,14 +162,34 @@ export function useTasks() {
 
   const deleteTask = useMutation({
     mutationFn: async (id: string) => {
+      // Get task info before deleting for activity log
+      const { data: taskData } = await supabase
+        .from('tasks')
+        .select('title')
+        .eq('id', id)
+        .single();
+
       const { error } = await supabase
         .from('tasks')
         .delete()
         .eq('id', id);
       if (error) throw error;
+
+      // Log activity
+      if (user && profile?.tenant_id && taskData) {
+        await logActivity({
+          tenantId: profile.tenant_id,
+          userId: user.id,
+          action: 'deleted',
+          entityType: 'task',
+          entityId: id,
+          entityTitle: taskData.title
+        });
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['activity-feed'] });
       toast.success('Task deleted successfully');
     },
     onError: (error: Error) => {

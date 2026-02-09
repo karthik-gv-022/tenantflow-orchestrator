@@ -3,6 +3,7 @@ import { MetricCard } from '@/components/dashboard/MetricCard';
 import { TaskStatusChart } from '@/components/dashboard/TaskStatusChart';
 import { RecentTasks } from '@/components/dashboard/RecentTasks';
 import { AlertsPanel } from '@/components/dashboard/AlertsPanel';
+import { ActivityFeed } from '@/components/activity/ActivityFeed';
 import { useTasks } from '@/hooks/useTasks';
 import { useAuth } from '@/hooks/useAuth';
 import {
@@ -84,8 +85,11 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Alerts */}
-        <AlertsPanel overdueTasks={overdueTasks} tasks={tasks} />
+        {/* Activity Feed and Alerts */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <ActivityFeed limit={10} compact />
+          <AlertsPanel overdueTasks={overdueTasks} tasks={tasks} />
+        </div>
       </div>
     </DashboardLayout>
   );

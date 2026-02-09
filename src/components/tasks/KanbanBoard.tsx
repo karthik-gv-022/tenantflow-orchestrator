@@ -8,6 +8,7 @@ interface KanbanBoardProps {
   onStatusChange: (id: string, status: TaskStatus) => void;
   onEdit: (task: Task) => void;
   onDelete: (id: string) => void;
+  onTaskClick?: (task: Task) => void;
 }
 
 const columns: { status: TaskStatus; label: string; icon: React.ElementType }[] = [
@@ -24,7 +25,7 @@ const columnStyles: Record<TaskStatus, string> = {
   completed: 'border-t-status-completed'
 };
 
-export function KanbanBoard({ tasks, onStatusChange, onEdit, onDelete }: KanbanBoardProps) {
+export function KanbanBoard({ tasks, onStatusChange, onEdit, onDelete, onTaskClick }: KanbanBoardProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       {columns.map(({ status, label, icon: Icon }) => {
@@ -51,6 +52,7 @@ export function KanbanBoard({ tasks, onStatusChange, onEdit, onDelete }: KanbanB
                   onStatusChange={onStatusChange}
                   onEdit={onEdit}
                   onDelete={onDelete}
+                  onClick={() => onTaskClick?.(task)}
                 />
               ))}
               {columnTasks.length === 0 && (

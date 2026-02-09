@@ -27,6 +27,7 @@ interface TaskCardProps {
   onStatusChange: (id: string, status: TaskStatus) => void;
   onEdit: (task: Task) => void;
   onDelete: (id: string) => void;
+  onClick?: () => void;
 }
 
 const statusStyles: Record<TaskStatus, string> = {
@@ -57,7 +58,7 @@ const statusLabels: Record<TaskStatus, string> = {
   completed: 'Completed'
 };
 
-export function TaskCard({ task, onStatusChange, onEdit, onDelete }: TaskCardProps) {
+export function TaskCard({ task, onStatusChange, onEdit, onDelete, onClick }: TaskCardProps) {
   const isOverdue =
     task.due_date &&
     task.status !== 'completed' &&
@@ -74,9 +75,10 @@ export function TaskCard({ task, onStatusChange, onEdit, onDelete }: TaskCardPro
   return (
     <Card
       className={cn(
-        'group relative overflow-hidden transition-all hover:shadow-md',
+        'group relative overflow-hidden transition-all hover:shadow-md cursor-pointer',
         isOverdue && 'ring-2 ring-destructive/50'
       )}
+      onClick={onClick}
     >
       <CardContent className="p-4">
         <div className="flex items-start justify-between gap-3">

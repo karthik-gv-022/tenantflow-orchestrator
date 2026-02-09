@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { KanbanBoard } from '@/components/tasks/KanbanBoard';
 import { CreateTaskDialog } from '@/components/tasks/CreateTaskDialog';
 import { EditTaskDialog } from '@/components/tasks/EditTaskDialog';
+import { TaskDetailDrawer } from '@/components/tasks/TaskDetailDrawer';
 import { useTasks } from '@/hooks/useTasks';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,10 +20,24 @@ import { Task, TaskStatus } from '@/types';
 
 export default function Tasks() {
   const { tasks, isLoading, createTask, updateTask, deleteTask } = useTasks();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [createOpen, setCreateOpen] = useState(false);
   const [editTask, setEditTask] = useState<Task | null>(null);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+
+  // Handle highlight from notifications
+  useEffect(() => {
+    const highlightId = searchParams.get('highlight');
+    if (highlightId && tasks.length > 0) {
+      const task = tasks.find(t => t.id === highlightId);
+      if (task) {
+        setSelectedTask(task);
+        setSearchParams({});
+      }
+    }
+  }, [searchParams, tasks, setSearchParams]);
 
   const filteredTasks = tasks.filter(task => {
     const matchesSearch =
@@ -41,6 +57,10 @@ export default function Tasks() {
 
   const handleDelete = (id: string) => {
     deleteTask.mutate(id);
+  };
+
+  const handleTaskClick = (task: Task) => {
+    setSelectedTask(task);
   };
 
   if (isLoading) {
@@ -101,6 +121,7 @@ export default function Tasks() {
           onStatusChange={handleStatusChange}
           onEdit={handleEdit}
           onDelete={handleDelete}
+          onTaskClick={handleTaskClick}
         />
 
         {/* Create Dialog */}
@@ -116,6 +137,18 @@ export default function Tasks() {
           open={!!editTask}
           onOpenChange={(open) => !open && setEditTask(null)}
           onSubmit={updates => updateTask.mutate(updates)}
+        />
+
+        {/* Task Detail Drawer */}
+        <TaskDetailDrawer
+          task={selectedTask}
+          open={!!selectedTask}
+          onOpenChange={(open) => !open && setSelectedTask(null)}
+          onEdit={(task) => {
+            setSelectedTask(null);
+            setEditTask(task);
+          }}
+          onStatusChange={handleStatusChange}
         />
       </div>
     </DashboardLayout>
