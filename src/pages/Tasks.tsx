@@ -8,6 +8,7 @@ import { TaskDetailDrawer } from '@/components/tasks/TaskDetailDrawer';
 import { TaskFilters, TaskFiltersState, defaultFilters, applyFilters } from '@/components/tasks/TaskFilters';
 import { TaskTemplates, TaskTemplate } from '@/components/tasks/TaskTemplates';
 import { useTasks } from '@/hooks/useTasks';
+import { useDelayPrediction } from '@/hooks/useDelayPrediction';
 import { Button } from '@/components/ui/button';
 import { Plus, FilePlus2, Loader2 } from 'lucide-react';
 import { Task, TaskStatus, TaskPriority } from '@/types';
@@ -20,6 +21,7 @@ import {
 
 export default function Tasks() {
   const { tasks, isLoading, createTask, updateTask, deleteTask } = useTasks();
+  const { generatePrediction, savePrediction } = useDelayPrediction();
   const [searchParams, setSearchParams] = useSearchParams();
   const [createOpen, setCreateOpen] = useState(false);
   const [templatesOpen, setTemplatesOpen] = useState(false);
@@ -48,7 +50,22 @@ export default function Tasks() {
   const filteredTasks = applyFilters(tasks, filters);
 
   const handleStatusChange = (id: string, status: TaskStatus) => {
-    updateTask.mutate({ id, status });
+    updateTask.mutate({ id, status }, {
+      onSuccess: (data) => {
+        // Generate prediction when task enters in_progress
+        if (status === 'in_progress') {
+          const task = tasks.find(t => t.id === id);
+          if (task) {
+            const prediction = generatePrediction(task, task.assignee_id);
+            savePrediction.mutate({
+              taskId: id,
+              prediction,
+              trigger: 'in_progress'
+            });
+          }
+        }
+      }
+    });
   };
 
   const handleEdit = (task: Task) => {
@@ -142,7 +159,22 @@ export default function Tasks() {
         <CreateTaskDialog
           open={createOpen}
           onOpenChange={handleCreateDialogClose}
-          onSubmit={task => createTask.mutate(task)}
+          onSubmit={task => {
+            createTask.mutate(task, {
+              onSuccess: (data) => {
+                // Generate and save prediction on task creation
+                const prediction = generatePrediction(
+                  { ...task, priority: task.priority },
+                  task.assignee_id
+                );
+                savePrediction.mutate({
+                  taskId: data.id,
+                  prediction,
+                  trigger: 'creation'
+                });
+              }
+            });
+          }}
           defaultValues={templateDefaults}
         />
 

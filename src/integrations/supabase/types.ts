@@ -283,6 +283,57 @@ export type Database = {
           },
         ]
       }
+      task_delay_predictions: {
+        Row: {
+          confidence_score: number
+          created_at: string
+          id: string
+          predicted_at: string
+          predicted_delayed: boolean
+          prediction_factors: Json
+          prediction_trigger: string
+          task_id: string
+          tenant_id: string
+        }
+        Insert: {
+          confidence_score: number
+          created_at?: string
+          id?: string
+          predicted_at?: string
+          predicted_delayed: boolean
+          prediction_factors?: Json
+          prediction_trigger: string
+          task_id: string
+          tenant_id: string
+        }
+        Update: {
+          confidence_score?: number
+          created_at?: string
+          id?: string
+          predicted_at?: string
+          predicted_delayed?: boolean
+          prediction_factors?: Json
+          prediction_trigger?: string
+          task_id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_delay_predictions_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_delay_predictions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tasks: {
         Row: {
           assignee_id: string | null

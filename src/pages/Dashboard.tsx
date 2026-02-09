@@ -4,19 +4,23 @@ import { TaskStatusChart } from '@/components/dashboard/TaskStatusChart';
 import { RecentTasks } from '@/components/dashboard/RecentTasks';
 import { AlertsPanel } from '@/components/dashboard/AlertsPanel';
 import { ActivityFeed } from '@/components/activity/ActivityFeed';
+import { PredictionAlerts } from '@/components/predictions/PredictionAlerts';
 import { useTasks } from '@/hooks/useTasks';
+import { useDelayPrediction } from '@/hooks/useDelayPrediction';
 import { useAuth } from '@/hooks/useAuth';
 import {
   ListTodo,
   CheckCircle,
   AlertTriangle,
   Clock,
-  Loader2
+  Loader2,
+  TrendingUp
 } from 'lucide-react';
 
 export default function Dashboard() {
   const { profile } = useAuth();
   const { tasks, overdueTasks, tasksByStatus, isLoading } = useTasks();
+  const { predictions, tasksAtRisk, getTaskPrediction } = useDelayPrediction();
 
   if (isLoading) {
     return (
@@ -46,7 +50,7 @@ export default function Dashboard() {
         </div>
 
         {/* Metrics Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           <MetricCard
             title="Total Tasks"
             value={tasks.length}
@@ -67,6 +71,13 @@ export default function Dashboard() {
             change="Active work items"
           />
           <MetricCard
+            title="At Risk"
+            value={tasksAtRisk.length}
+            icon={TrendingUp}
+            change={tasksAtRisk.length > 0 ? 'Predicted delays' : 'All on track'}
+            changeType={tasksAtRisk.length > 0 ? 'negative' : 'positive'}
+          />
+          <MetricCard
             title="Overdue"
             value={overdueTasks.length}
             icon={AlertTriangle}
@@ -85,9 +96,14 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Activity Feed and Alerts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Activity Feed, Prediction Alerts, and Alerts */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <ActivityFeed limit={10} compact />
+          <PredictionAlerts 
+            tasksAtRisk={tasksAtRisk} 
+            predictions={predictions} 
+            getTaskPrediction={getTaskPrediction} 
+          />
           <AlertsPanel overdueTasks={overdueTasks} tasks={tasks} />
         </div>
       </div>
