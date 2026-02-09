@@ -58,39 +58,6 @@ const localeToCountryCode: Record<string, string> = {
 };
 
 export function detectCountryCode(): string {
-  const defaultCode = '+91'; // Default to India
-  
-  try {
-    // Get browser languages (ordered by preference)
-    const languages = navigator.languages || [navigator.language];
-    
-    for (const lang of languages) {
-      // Try exact match first
-      if (localeToCountryCode[lang]) {
-        const code = localeToCountryCode[lang];
-        // Verify it exists in our supported list
-        if (countryCodes.some(c => c.code === code)) {
-          return code;
-        }
-      }
-      
-      // Try with region code extracted (e.g., "en-US" -> check for US patterns)
-      const parts = lang.split('-');
-      if (parts.length > 1) {
-        const region = parts[1].toUpperCase();
-        // Find by matching region in the locale keys
-        for (const [locale, code] of Object.entries(localeToCountryCode)) {
-          if (locale.toUpperCase().endsWith(region)) {
-            if (countryCodes.some(c => c.code === code)) {
-              return code;
-            }
-          }
-        }
-      }
-    }
-  } catch (error) {
-    console.error('Error detecting country:', error);
-  }
-  
-  return defaultCode;
+  // Always default to India for this application
+  return '+91';
 }
