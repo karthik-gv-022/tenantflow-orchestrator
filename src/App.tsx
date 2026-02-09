@@ -13,6 +13,7 @@ import Projects from "./pages/Projects";
 import Team from "./pages/Team";
 import Alerts from "./pages/Alerts";
 import Audit from "./pages/Audit";
+import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import { ReactNode, forwardRef, useEffect } from "react";
@@ -100,6 +101,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <Audit />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/analytics"
+        element={
+          <ProtectedRoute>
+            <Analytics />
           </ProtectedRoute>
         }
       />
