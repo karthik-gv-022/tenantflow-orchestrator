@@ -1,4 +1,5 @@
 import { Task, TaskStatus, TaskPriority } from '@/types';
+import { PredictionResult } from '@/types/prediction';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -10,16 +11,15 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { DelayRiskBadge } from '@/components/predictions/DelayRiskBadge';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import {
   Calendar,
-  Clock,
   MoreHorizontal,
   ArrowRight,
   Trash2,
-  Edit,
-  User
+  Edit
 } from 'lucide-react';
 
 interface TaskCardProps {
@@ -28,6 +28,7 @@ interface TaskCardProps {
   onEdit: (task: Task) => void;
   onDelete: (id: string) => void;
   onClick?: () => void;
+  prediction?: PredictionResult | null;
 }
 
 const statusStyles: Record<TaskStatus, string> = {
@@ -58,7 +59,7 @@ const statusLabels: Record<TaskStatus, string> = {
   completed: 'Completed'
 };
 
-export function TaskCard({ task, onStatusChange, onEdit, onDelete, onClick }: TaskCardProps) {
+export function TaskCard({ task, onStatusChange, onEdit, onDelete, onClick, prediction }: TaskCardProps) {
   const isOverdue =
     task.due_date &&
     task.status !== 'completed' &&
@@ -83,7 +84,7 @@ export function TaskCard({ task, onStatusChange, onEdit, onDelete, onClick }: Ta
       <CardContent className="p-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
               <Badge
                 variant="outline"
                 className={cn('text-xs', priorityStyles[task.priority])}
@@ -94,6 +95,9 @@ export function TaskCard({ task, onStatusChange, onEdit, onDelete, onClick }: Ta
                 <Badge variant="destructive" className="text-xs">
                   Overdue
                 </Badge>
+              )}
+              {prediction && task.status !== 'completed' && (
+                <DelayRiskBadge prediction={prediction} compact />
               )}
             </div>
             <h3 className="font-semibold mb-1 line-clamp-2">{task.title}</h3>

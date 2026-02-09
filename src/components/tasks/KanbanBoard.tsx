@@ -1,5 +1,7 @@
 import { Task, TaskStatus } from '@/types';
+import { PredictionResult } from '@/types/prediction';
 import { TaskCard } from './TaskCard';
+import { useDelayPrediction } from '@/hooks/useDelayPrediction';
 import { cn } from '@/lib/utils';
 import { Circle, Play, Eye, CheckCircle } from 'lucide-react';
 
@@ -26,6 +28,30 @@ const columnStyles: Record<TaskStatus, string> = {
 };
 
 export function KanbanBoard({ tasks, onStatusChange, onEdit, onDelete, onTaskClick }: KanbanBoardProps) {
+  const { generatePrediction, getTaskPrediction } = useDelayPrediction();
+
+  // Get or generate prediction for a task
+  const getTaskPredictionResult = (task: Task): PredictionResult | null => {
+    if (task.status === 'completed') return null;
+    
+    // Check if we have a stored prediction
+    const storedPrediction = getTaskPrediction(task.id);
+    if (storedPrediction) {
+      return {
+        predicted_delayed: storedPrediction.predicted_delayed,
+        confidence_score: storedPrediction.confidence_score,
+        risk_level: storedPrediction.confidence_score >= 0.8 ? 'critical' :
+                    storedPrediction.confidence_score >= 0.6 ? 'high' :
+                    storedPrediction.confidence_score >= 0.4 ? 'medium' : 'low',
+        factors: storedPrediction.prediction_factors as any,
+        recommendations: []
+      };
+    }
+    
+    // Generate live prediction for display
+    return generatePrediction(task, task.assignee_id);
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       {columns.map(({ status, label, icon: Icon }) => {
@@ -53,6 +79,7 @@ export function KanbanBoard({ tasks, onStatusChange, onEdit, onDelete, onTaskCli
                   onEdit={onEdit}
                   onDelete={onDelete}
                   onClick={() => onTaskClick?.(task)}
+                  prediction={getTaskPredictionResult(task)}
                 />
               ))}
               {columnTasks.length === 0 && (

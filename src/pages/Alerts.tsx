@@ -1,10 +1,13 @@
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { AlertsPanel } from '@/components/dashboard/AlertsPanel';
+import { PredictionAlerts } from '@/components/predictions/PredictionAlerts';
 import { useTasks } from '@/hooks/useTasks';
+import { useDelayPrediction } from '@/hooks/useDelayPrediction';
 import { Loader2 } from 'lucide-react';
 
 export default function Alerts() {
   const { tasks, overdueTasks, isLoading } = useTasks();
+  const { predictions, tasksAtRisk, getTaskPrediction } = useDelayPrediction();
 
   if (isLoading) {
     return (
@@ -26,7 +29,14 @@ export default function Alerts() {
           </p>
         </div>
 
-        <AlertsPanel overdueTasks={overdueTasks} tasks={tasks} />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <PredictionAlerts 
+            tasksAtRisk={tasksAtRisk} 
+            predictions={predictions} 
+            getTaskPrediction={getTaskPrediction} 
+          />
+          <AlertsPanel overdueTasks={overdueTasks} tasks={tasks} />
+        </div>
       </div>
     </DashboardLayout>
   );

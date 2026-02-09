@@ -115,6 +115,9 @@ export function useTasks() {
     mutationFn: async ({ id, ...updates }: Partial<Task> & { id: string }) => {
       const updateData: Record<string, unknown> = { ...updates };
       
+      // Track if entering in_progress for prediction trigger
+      const enteringInProgress = updates.status === 'in_progress';
+      
       // Handle status transitions
       if (updates.status === 'in_progress' && !updates.started_at) {
         updateData.started_at = new Date().toISOString();
