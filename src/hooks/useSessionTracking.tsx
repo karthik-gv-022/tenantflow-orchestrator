@@ -52,51 +52,34 @@ export function useSessionTracking() {
     if (!session || !user) return;
     
     const deviceInfo = getDeviceInfo();
-    const sessionToken = session.access_token.slice(-20); // Use last 20 chars as identifier
+    const sessionToken = session.access_token.slice(-20);
     
     try {
-      // Check if this session already exists
-      const { data: existingSessions } = await supabase
+      // Use upsert to reduce queries - single operation instead of check + update/insert
+      const { error } = await supabase
         .from('user_sessions')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('session_token', sessionToken);
+        .upsert({
+          user_id: user.id,
+          session_token: sessionToken,
+          device_name: deviceInfo.deviceName,
+          browser: deviceInfo.browser,
+          os: deviceInfo.os,
+          last_active_at: new Date().toISOString(),
+          is_current: true
+        }, {
+          onConflict: 'user_id,session_token'
+        });
       
-      if (existingSessions && existingSessions.length > 0) {
-        // Update last active time
-        await supabase
-          .from('user_sessions')
-          .update({ 
-            last_active_at: new Date().toISOString(),
-            is_current: true 
-          })
-          .eq('id', existingSessions[0].id);
+      if (error) throw error;
+      
+      // Mark other sessions as not current (fire and forget)
+      supabase
+        .from('user_sessions')
+        .update({ is_current: false })
+        .eq('user_id', user.id)
+        .neq('session_token', sessionToken)
+        .then(() => {}); // Don't await, run in background
         
-        // Set all other sessions as not current
-        await supabase
-          .from('user_sessions')
-          .update({ is_current: false })
-          .eq('user_id', user.id)
-          .neq('id', existingSessions[0].id);
-      } else {
-        // Mark all existing sessions as not current
-        await supabase
-          .from('user_sessions')
-          .update({ is_current: false })
-          .eq('user_id', user.id);
-        
-        // Create new session record
-        await supabase
-          .from('user_sessions')
-          .insert({
-            user_id: user.id,
-            session_token: sessionToken,
-            device_name: deviceInfo.deviceName,
-            browser: deviceInfo.browser,
-            os: deviceInfo.os,
-            is_current: true
-          });
-      }
     } catch (error) {
       console.error('Failed to track session:', error);
     }

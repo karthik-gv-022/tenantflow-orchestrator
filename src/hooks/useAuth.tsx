@@ -46,19 +46,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchProfile(session.user.id);
-        fetchRoles(session.user.id);
+        // Fetch profile and roles in parallel
+        Promise.all([
+          fetchProfile(session.user.id),
+          fetchRoles(session.user.id)
+        ]).then(() => setLoading(false));
+      } else {
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         if (session?.user) {
-          await fetchProfile(session.user.id);
-          await fetchRoles(session.user.id);
+          // Defer data fetching to avoid deadlock, run in parallel
+          setTimeout(() => {
+            Promise.all([
+              fetchProfile(session.user.id),
+              fetchRoles(session.user.id)
+            ]);
+          }, 0);
         } else {
           setProfile(null);
           setRoles([]);
