@@ -13,7 +13,8 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
-  Workflow
+  Workflow,
+  Network
 } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -25,6 +26,7 @@ const navItems = [
   { path: '/projects', label: 'Projects', icon: FolderKanban },
   { path: '/team', label: 'Team', icon: Users },
   { path: '/analytics', label: 'Analytics', icon: BarChart3 },
+  { path: '/federated', label: 'Federated AI', icon: Network },
   { path: '/alerts', label: 'Alerts', icon: AlertTriangle },
   { path: '/audit', label: 'Audit Log', icon: History },
   { path: '/settings', label: 'Settings', icon: Settings },

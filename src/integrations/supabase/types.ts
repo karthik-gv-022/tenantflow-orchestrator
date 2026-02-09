@@ -99,6 +99,123 @@ export type Database = {
           },
         ]
       }
+      federated_training_rounds: {
+        Row: {
+          aggregation_method: string
+          completed_at: string | null
+          created_at: string
+          global_accuracy: number | null
+          global_weights: Json | null
+          id: string
+          metadata: Json | null
+          participating_tenants: string[]
+          round_number: number
+          started_at: string | null
+          status: string
+          total_samples: number
+        }
+        Insert: {
+          aggregation_method?: string
+          completed_at?: string | null
+          created_at?: string
+          global_accuracy?: number | null
+          global_weights?: Json | null
+          id?: string
+          metadata?: Json | null
+          participating_tenants?: string[]
+          round_number: number
+          started_at?: string | null
+          status?: string
+          total_samples?: number
+        }
+        Update: {
+          aggregation_method?: string
+          completed_at?: string | null
+          created_at?: string
+          global_accuracy?: number | null
+          global_weights?: Json | null
+          id?: string
+          metadata?: Json | null
+          participating_tenants?: string[]
+          round_number?: number
+          started_at?: string | null
+          status?: string
+          total_samples?: number
+        }
+        Relationships: []
+      }
+      model_evaluation_results: {
+        Row: {
+          accuracy: number
+          auc_roc: number | null
+          evaluated_at: string
+          evaluation_type: string
+          f1_score: number | null
+          false_negatives: number | null
+          false_positives: number | null
+          id: string
+          metadata: Json | null
+          precision_score: number | null
+          recall_score: number | null
+          round_id: string | null
+          tenant_id: string | null
+          test_samples: number
+          true_negatives: number | null
+          true_positives: number | null
+        }
+        Insert: {
+          accuracy: number
+          auc_roc?: number | null
+          evaluated_at?: string
+          evaluation_type: string
+          f1_score?: number | null
+          false_negatives?: number | null
+          false_positives?: number | null
+          id?: string
+          metadata?: Json | null
+          precision_score?: number | null
+          recall_score?: number | null
+          round_id?: string | null
+          tenant_id?: string | null
+          test_samples: number
+          true_negatives?: number | null
+          true_positives?: number | null
+        }
+        Update: {
+          accuracy?: number
+          auc_roc?: number | null
+          evaluated_at?: string
+          evaluation_type?: string
+          f1_score?: number | null
+          false_negatives?: number | null
+          false_positives?: number | null
+          id?: string
+          metadata?: Json | null
+          precision_score?: number | null
+          recall_score?: number | null
+          round_id?: string | null
+          tenant_id?: string | null
+          test_samples?: number
+          true_negatives?: number | null
+          true_positives?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "model_evaluation_results_round_id_fkey"
+            columns: ["round_id"]
+            isOneToOne: false
+            referencedRelation: "federated_training_rounds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "model_evaluation_results_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string
@@ -396,6 +513,122 @@ export type Database = {
           },
           {
             foreignKeyName: "tasks_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tenant_model_weights: {
+        Row: {
+          accuracy: number | null
+          created_at: string
+          f1_score: number | null
+          feature_names: string[]
+          id: string
+          last_trained_at: string | null
+          model_version: number
+          precision_score: number | null
+          recall_score: number | null
+          tenant_id: string
+          training_samples: number
+          updated_at: string
+          weights: Json
+        }
+        Insert: {
+          accuracy?: number | null
+          created_at?: string
+          f1_score?: number | null
+          feature_names: string[]
+          id?: string
+          last_trained_at?: string | null
+          model_version?: number
+          precision_score?: number | null
+          recall_score?: number | null
+          tenant_id: string
+          training_samples?: number
+          updated_at?: string
+          weights: Json
+        }
+        Update: {
+          accuracy?: number | null
+          created_at?: string
+          f1_score?: number | null
+          feature_names?: string[]
+          id?: string
+          last_trained_at?: string | null
+          model_version?: number
+          precision_score?: number | null
+          recall_score?: number | null
+          tenant_id?: string
+          training_samples?: number
+          updated_at?: string
+          weights?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_model_weights_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tenant_training_metadata: {
+        Row: {
+          created_at: string
+          epochs_completed: number
+          id: string
+          local_weights: Json
+          loss: number | null
+          round_id: string
+          tenant_id: string
+          training_accuracy: number | null
+          training_duration_ms: number | null
+          training_samples: number
+          validation_accuracy: number | null
+          validation_samples: number
+        }
+        Insert: {
+          created_at?: string
+          epochs_completed?: number
+          id?: string
+          local_weights: Json
+          loss?: number | null
+          round_id: string
+          tenant_id: string
+          training_accuracy?: number | null
+          training_duration_ms?: number | null
+          training_samples: number
+          validation_accuracy?: number | null
+          validation_samples?: number
+        }
+        Update: {
+          created_at?: string
+          epochs_completed?: number
+          id?: string
+          local_weights?: Json
+          loss?: number | null
+          round_id?: string
+          tenant_id?: string
+          training_accuracy?: number | null
+          training_duration_ms?: number | null
+          training_samples?: number
+          validation_accuracy?: number | null
+          validation_samples?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_training_metadata_round_id_fkey"
+            columns: ["round_id"]
+            isOneToOne: false
+            referencedRelation: "federated_training_rounds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenant_training_metadata_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"

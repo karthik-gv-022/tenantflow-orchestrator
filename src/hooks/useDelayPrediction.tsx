@@ -3,7 +3,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useTasks } from './useTasks';
 import { predictTaskDelay } from '@/services/delayPrediction';
+import { predictWithML } from '@/services/mlPrediction';
 import { DelayPrediction, PredictionResult, PredictionFactors } from '@/types/prediction';
+import { TenantModelWeights } from '@/types/federated';
 import { Task, TaskPriority } from '@/types';
 import { Json } from '@/integrations/supabase/types';
 
@@ -16,6 +18,26 @@ export function useDelayPrediction() {
   const queryClient = useQueryClient();
   const { profile } = useAuth();
   const { tasks } = useTasks();
+
+  // Fetch tenant's trained model
+  const { data: tenantModel } = useQuery({
+    queryKey: ['tenant-model', profile?.tenant_id],
+    queryFn: async () => {
+      if (!profile?.tenant_id) return null;
+      
+      const { data, error } = await supabase
+        .from('tenant_model_weights')
+        .select('*')
+        .eq('tenant_id', profile.tenant_id)
+        .order('model_version', { ascending: false })
+        .limit(1)
+        .single();
+      
+      if (error && error.code !== 'PGRST116') throw error;
+      return data as unknown as TenantModelWeights | null;
+    },
+    enabled: !!profile?.tenant_id
+  });
 
   // Fetch existing predictions
   const { data: predictions = [], isLoading: predictionsLoading } = useQuery({
@@ -99,7 +121,7 @@ export function useDelayPrediction() {
     ).length;
   };
 
-  // Generate prediction for a task
+  // Generate prediction for a task (uses ML model if available)
   const generatePrediction = (
     task: Partial<Task> & { priority: TaskPriority; due_date?: string | null; sla_hours?: number | null },
     assigneeId: string | null
@@ -109,6 +131,17 @@ export function useDelayPrediction() {
       ? (historicalStats.assigneeCompletionRates[assigneeId] ?? 0.5)
       : 0.5;
     
+    // Use ML-enhanced prediction if model is available
+    if (tenantModel && tenantModel.weights) {
+      return predictWithML(
+        task,
+        assigneeWorkload,
+        assigneeCompletionRate,
+        tenantModel
+      );
+    }
+    
+    // Fall back to rule-based prediction
     return predictTaskDelay({
       task,
       assigneeWorkload,
@@ -204,6 +237,8 @@ export function useDelayPrediction() {
     getTaskPrediction,
     highRiskTasks,
     tasksAtRisk,
-    historicalStats
+    historicalStats,
+    tenantModel,
+    hasMLModel: !!tenantModel?.weights
   };
 }
