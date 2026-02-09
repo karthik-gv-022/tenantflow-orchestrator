@@ -10,10 +10,10 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
-import { Loader2, User, Mail, Building, Shield, Save } from 'lucide-react';
+import { Loader2, User, Building, Shield, Save } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AppRole } from '@/types';
-
+import { SessionsCard } from '@/components/settings/SessionsCard';
 const roleStyles: Record<AppRole, string> = {
   system_admin: 'bg-destructive/20 text-destructive',
   tenant_admin: 'bg-primary/20 text-primary',
@@ -211,6 +211,8 @@ export default function Settings() {
             </div>
           </CardContent>
         </Card>
+
+        <SessionsCard />
       </div>
     </DashboardLayout>
   );
