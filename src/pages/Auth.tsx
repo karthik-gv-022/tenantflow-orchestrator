@@ -32,11 +32,21 @@ export default function Auth() {
   }
 
   const formatPhoneNumber = (value: string) => {
-    const digits = value.replace(/\D/g, '');
-    if (!digits.startsWith('1') && digits.length > 0) {
-      return '+1' + digits;
+    // Remove all non-digit characters except leading +
+    const digits = value.replace(/[^\d]/g, '');
+    
+    // If empty or just country code, return with +91 prefix
+    if (!digits || digits === '91') {
+      return '+91';
     }
-    return '+' + digits;
+    
+    // If starts with 91 (India code), format as +91
+    if (digits.startsWith('91') && digits.length > 2) {
+      return '+' + digits;
+    }
+    
+    // Otherwise, prepend +91 for Indian numbers
+    return '+91' + digits;
   };
 
   const handleGoogleSignIn = async () => {
@@ -186,7 +196,7 @@ export default function Auth() {
                       <Input
                         id="phone"
                         type="tel"
-                        placeholder="+1 (555) 000-0000"
+                        placeholder="+91 98765 43210"
                         value={phone}
                         onChange={e => setPhone(e.target.value)}
                         className="pl-10"
