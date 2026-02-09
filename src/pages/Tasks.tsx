@@ -5,27 +5,33 @@ import { KanbanBoard } from '@/components/tasks/KanbanBoard';
 import { CreateTaskDialog } from '@/components/tasks/CreateTaskDialog';
 import { EditTaskDialog } from '@/components/tasks/EditTaskDialog';
 import { TaskDetailDrawer } from '@/components/tasks/TaskDetailDrawer';
+import { TaskFilters, TaskFiltersState, defaultFilters, applyFilters } from '@/components/tasks/TaskFilters';
+import { TaskTemplates, TaskTemplate } from '@/components/tasks/TaskTemplates';
 import { useTasks } from '@/hooks/useTasks';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Plus, FilePlus2, Loader2 } from 'lucide-react';
+import { Task, TaskStatus, TaskPriority } from '@/types';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select';
-import { Plus, Search, Loader2 } from 'lucide-react';
-import { Task, TaskStatus } from '@/types';
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
 
 export default function Tasks() {
   const { tasks, isLoading, createTask, updateTask, deleteTask } = useTasks();
   const [searchParams, setSearchParams] = useSearchParams();
   const [createOpen, setCreateOpen] = useState(false);
+  const [templatesOpen, setTemplatesOpen] = useState(false);
   const [editTask, setEditTask] = useState<Task | null>(null);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [filters, setFilters] = useState<TaskFiltersState>(defaultFilters);
+  const [templateDefaults, setTemplateDefaults] = useState<{
+    title: string;
+    description: string;
+    priority: TaskPriority;
+    sla_hours: number | null;
+  } | null>(null);
 
   // Handle highlight from notifications
   useEffect(() => {
@@ -39,13 +45,7 @@ export default function Tasks() {
     }
   }, [searchParams, tasks, setSearchParams]);
 
-  const filteredTasks = tasks.filter(task => {
-    const matchesSearch =
-      task.title.toLowerCase().includes(search.toLowerCase()) ||
-      task.description?.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || task.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  const filteredTasks = applyFilters(tasks, filters);
 
   const handleStatusChange = (id: string, status: TaskStatus) => {
     updateTask.mutate({ id, status });
@@ -61,6 +61,23 @@ export default function Tasks() {
 
   const handleTaskClick = (task: Task) => {
     setSelectedTask(task);
+  };
+
+  const handleTemplateSelect = (template: TaskTemplate) => {
+    setTemplateDefaults({
+      title: template.title,
+      description: template.description,
+      priority: template.priority,
+      sla_hours: template.sla_hours
+    });
+    setCreateOpen(true);
+  };
+
+  const handleCreateDialogClose = (open: boolean) => {
+    setCreateOpen(open);
+    if (!open) {
+      setTemplateDefaults(null);
+    }
   };
 
   if (isLoading) {
@@ -84,36 +101,33 @@ export default function Tasks() {
               Manage and track your team's work
             </p>
           </div>
-          <Button onClick={() => setCreateOpen(true)}>
-            <Plus className="w-4 h-4 mr-2" />
-            New Task
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button>
+                <Plus className="w-4 h-4 mr-2" />
+                New Task
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setCreateOpen(true)}>
+                <Plus className="w-4 h-4 mr-2" />
+                Blank Task
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setTemplatesOpen(true)}>
+                <FilePlus2 className="w-4 h-4 mr-2" />
+                From Template
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
-        {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Search tasks..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="pl-9"
-            />
-          </div>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Filter by status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="created">Created</SelectItem>
-              <SelectItem value="in_progress">In Progress</SelectItem>
-              <SelectItem value="review">In Review</SelectItem>
-              <SelectItem value="completed">Completed</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        {/* Advanced Filters */}
+        <TaskFilters
+          filters={filters}
+          onFiltersChange={setFilters}
+          tasks={tasks}
+          filteredCount={filteredTasks.length}
+        />
 
         {/* Kanban Board */}
         <KanbanBoard
@@ -127,8 +141,16 @@ export default function Tasks() {
         {/* Create Dialog */}
         <CreateTaskDialog
           open={createOpen}
-          onOpenChange={setCreateOpen}
+          onOpenChange={handleCreateDialogClose}
           onSubmit={task => createTask.mutate(task)}
+          defaultValues={templateDefaults}
+        />
+
+        {/* Task Templates */}
+        <TaskTemplates
+          open={templatesOpen}
+          onOpenChange={setTemplatesOpen}
+          onSelectTemplate={handleTemplateSelect}
         />
 
         {/* Edit Dialog */}

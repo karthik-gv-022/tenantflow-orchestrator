@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -37,20 +37,36 @@ interface CreateTaskDialogProps {
     project_id: string | null;
     sla_hours: number | null;
   }) => void;
+  defaultValues?: {
+    title?: string;
+    description?: string;
+    priority?: TaskPriority;
+    sla_hours?: number | null;
+  } | null;
 }
 
-export function CreateTaskDialog({ open, onOpenChange, onSubmit }: CreateTaskDialogProps) {
+export function CreateTaskDialog({ open, onOpenChange, onSubmit, defaultValues }: CreateTaskDialogProps) {
   const { user, profile } = useAuth();
   const { members } = useTeamMembers();
   const { projects } = useProjects();
   
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [priority, setPriority] = useState<TaskPriority>('medium');
+  const [title, setTitle] = useState(defaultValues?.title || '');
+  const [description, setDescription] = useState(defaultValues?.description || '');
+  const [priority, setPriority] = useState<TaskPriority>(defaultValues?.priority || 'medium');
   const [dueDate, setDueDate] = useState('');
   const [assigneeId, setAssigneeId] = useState<string>('unassigned');
   const [projectId, setProjectId] = useState<string>('none');
-  const [slaHours, setSlaHours] = useState('');
+  const [slaHours, setSlaHours] = useState(defaultValues?.sla_hours?.toString() || '');
+
+  // Update form when defaultValues changes (e.g., template selected)
+  useEffect(() => {
+    if (defaultValues) {
+      setTitle(defaultValues.title || '');
+      setDescription(defaultValues.description || '');
+      setPriority(defaultValues.priority || 'medium');
+      setSlaHours(defaultValues.sla_hours?.toString() || '');
+    }
+  }, [defaultValues]);
 
   const getInitials = (name: string | null) => {
     if (!name) return '?';
