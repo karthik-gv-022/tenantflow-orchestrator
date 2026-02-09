@@ -9,7 +9,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TaskComments } from './TaskComments';
+import { TaskActivityTimeline } from './TaskActivityTimeline';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import {
@@ -20,7 +22,8 @@ import {
   AlertTriangle,
   Edit,
   ArrowRight,
-  X
+  MessageSquare,
+  Activity
 } from 'lucide-react';
 
 interface TaskDetailDrawerProps {
@@ -213,13 +216,25 @@ export function TaskDetailDrawer({
             )}
           </div>
 
-          <Separator />
-
-          {/* Comments Section */}
-          <div className="flex-1">
-            <h4 className="text-sm font-medium mb-4">Comments</h4>
-            <TaskComments taskId={task.id} className="h-[300px]" />
-          </div>
+          {/* Comments & Activity Tabs */}
+          <Tabs defaultValue="comments" className="flex-1">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="comments" className="gap-2">
+                <MessageSquare className="w-4 h-4" />
+                Comments
+              </TabsTrigger>
+              <TabsTrigger value="activity" className="gap-2">
+                <Activity className="w-4 h-4" />
+                Activity
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="comments" className="mt-4">
+              <TaskComments taskId={task.id} className="h-[280px]" />
+            </TabsContent>
+            <TabsContent value="activity" className="mt-4">
+              <TaskActivityTimeline taskId={task.id} className="h-[280px]" />
+            </TabsContent>
+          </Tabs>
         </div>
       </SheetContent>
     </Sheet>
