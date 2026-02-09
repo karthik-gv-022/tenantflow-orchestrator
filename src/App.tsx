@@ -15,11 +15,11 @@ import Alerts from "./pages/Alerts";
 import Audit from "./pages/Audit";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
-import { ReactNode } from "react";
+import { ReactNode, forwardRef } from "react";
 
 const queryClient = new QueryClient();
 
-function ProtectedRoute({ children }: { children: ReactNode }) {
+const ProtectedRoute = forwardRef<HTMLDivElement, { children: ReactNode }>(({ children }, ref) => {
   const { user, loading } = useAuth();
   useSessionTracking(); // Track session on protected routes
 
@@ -32,7 +32,7 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
   }
 
   return <>{children}</>;
-}
+});
 
 function AppRoutes() {
   return (
