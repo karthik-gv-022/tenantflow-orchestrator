@@ -11,12 +11,15 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { lovable } from '@/integrations/lovable';
 import { Separator } from '@/components/ui/separator';
+import { CountryCodeSelector } from '@/components/auth/CountryCodeSelector';
 
 export default function Auth() {
   const { user, loading } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [step, setStep] = useState<'phone' | 'otp'>('phone');
-  const [phone, setPhone] = useState('');
+  const [countryCode, setCountryCode] = useState('+91');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [formattedPhone, setFormattedPhone] = useState('');
   const [otp, setOtp] = useState('');
 
   if (loading) {
@@ -31,22 +34,15 @@ export default function Auth() {
     return <Navigate to="/dashboard" replace />;
   }
 
-  const formatPhoneNumber = (value: string) => {
-    // Remove all non-digit characters except leading +
+  const formatPhoneNumber = (value: string, code: string) => {
+    // Remove all non-digit characters
     const digits = value.replace(/[^\d]/g, '');
     
-    // If empty or just country code, return with +91 prefix
-    if (!digits || digits === '91') {
-      return '+91';
+    if (!digits) {
+      return code;
     }
     
-    // If starts with 91 (India code), format as +91
-    if (digits.startsWith('91') && digits.length > 2) {
-      return '+' + digits;
-    }
-    
-    // Otherwise, prepend +91 for Indian numbers
-    return '+91' + digits;
+    return code + digits;
   };
 
   const handleGoogleSignIn = async () => {
@@ -67,19 +63,19 @@ export default function Auth() {
     setIsSubmitting(true);
     
     try {
-      const formattedPhone = formatPhoneNumber(phone);
+      const fullPhone = formatPhoneNumber(phoneNumber, countryCode);
       
-      if (formattedPhone.length < 10) {
+      if (phoneNumber.replace(/[^\d]/g, '').length < 6) {
         throw new Error('Please enter a valid phone number');
       }
 
       const { error } = await supabase.auth.signInWithOtp({
-        phone: formattedPhone,
+        phone: fullPhone,
       });
 
       if (error) throw error;
       
-      setPhone(formattedPhone);
+      setFormattedPhone(fullPhone);
       setStep('otp');
       toast.success('Verification code sent to your phone');
     } catch (error: any) {
@@ -99,7 +95,7 @@ export default function Auth() {
       }
 
       const { error } = await supabase.auth.verifyOtp({
-        phone,
+        phone: formattedPhone,
         token: otp,
         type: 'sms',
       });
@@ -191,17 +187,23 @@ export default function Auth() {
                 <form onSubmit={handleSendOTP} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="phone">Phone Number</Label>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input
-                        id="phone"
-                        type="tel"
-                        placeholder="+91 98765 43210"
-                        value={phone}
-                        onChange={e => setPhone(e.target.value)}
-                        className="pl-10"
-                        required
+                    <div className="flex gap-2">
+                      <CountryCodeSelector 
+                        value={countryCode} 
+                        onChange={setCountryCode} 
                       />
+                      <div className="relative flex-1">
+                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <Input
+                          id="phone"
+                          type="tel"
+                          placeholder="98765 43210"
+                          value={phoneNumber}
+                          onChange={e => setPhoneNumber(e.target.value)}
+                          className="pl-10"
+                          required
+                        />
+                      </div>
                     </div>
                     <p className="text-xs text-muted-foreground">
                       We'll send you a verification code via SMS
@@ -227,7 +229,7 @@ export default function Auth() {
                 <div className="space-y-2">
                   <Label>Verification Code</Label>
                   <p className="text-sm text-muted-foreground mb-4">
-                    Enter the 6-digit code sent to {phone}
+                    Enter the 6-digit code sent to {formattedPhone}
                   </p>
                   <div className="flex justify-center">
                     <InputOTP
