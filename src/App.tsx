@@ -15,9 +15,23 @@ import Alerts from "./pages/Alerts";
 import Audit from "./pages/Audit";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
-import { ReactNode, forwardRef } from "react";
+import { ReactNode, forwardRef, useEffect } from "react";
+import { toast } from "sonner";
 
 const queryClient = new QueryClient();
+
+// Global error handler for unhandled promise rejections
+function useGlobalErrorHandler() {
+  useEffect(() => {
+    const handleRejection = (event: PromiseRejectionEvent) => {
+      console.error("Unhandled rejection:", event.reason);
+      event.preventDefault();
+    };
+
+    window.addEventListener("unhandledrejection", handleRejection);
+    return () => window.removeEventListener("unhandledrejection", handleRejection);
+  }, []);
+}
 
 const ProtectedRoute = forwardRef<HTMLDivElement, { children: ReactNode }>(({ children }, ref) => {
   const { user, loading } = useAuth();
@@ -35,6 +49,8 @@ const ProtectedRoute = forwardRef<HTMLDivElement, { children: ReactNode }>(({ ch
 });
 
 function AppRoutes() {
+  useGlobalErrorHandler();
+  
   return (
     <Routes>
       <Route path="/" element={<Index />} />

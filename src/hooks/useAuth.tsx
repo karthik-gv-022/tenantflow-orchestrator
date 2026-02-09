@@ -25,20 +25,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const fetchProfile = async (userId: string) => {
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('user_id', userId)
-      .single();
-    setProfile(data as Profile | null);
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+      if (!error) {
+        setProfile(data as Profile | null);
+      }
+    } catch (error) {
+      console.error('Failed to fetch profile:', error);
+    }
   };
 
   const fetchRoles = async (userId: string) => {
-    const { data } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', userId);
-    setRoles((data || []).map((r: { role: AppRole }) => r.role));
+    try {
+      const { data } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId);
+      setRoles((data || []).map((r: { role: AppRole }) => r.role));
+    } catch (error) {
+      console.error('Failed to fetch roles:', error);
+    }
   };
 
   useEffect(() => {
@@ -46,11 +56,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        // Fetch profile and roles in parallel
+        // Fetch profile and roles in parallel with error handling
         Promise.all([
           fetchProfile(session.user.id),
           fetchRoles(session.user.id)
-        ]).then(() => setLoading(false));
+        ]).catch(console.error).finally(() => setLoading(false));
       } else {
         setLoading(false);
       }
@@ -66,7 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             Promise.all([
               fetchProfile(session.user.id),
               fetchRoles(session.user.id)
-            ]);
+            ]).catch(console.error);
           }, 0);
         } else {
           setProfile(null);
