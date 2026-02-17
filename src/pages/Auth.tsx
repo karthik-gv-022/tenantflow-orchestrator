@@ -6,13 +6,23 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
-import { Workflow, Loader2, Phone, ArrowLeft } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Workflow, Loader2, Phone, ArrowLeft, ShieldCheck, Crown, Briefcase, Star, User } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { lovable } from '@/integrations/lovable';
 import { Separator } from '@/components/ui/separator';
 import { CountryCodeSelector } from '@/components/auth/CountryCodeSelector';
 import { detectCountryCode } from '@/lib/detectCountry';
+import { cn } from '@/lib/utils';
+
+const demoAccounts = [
+  { role: 'system_admin', label: 'System Admin', desc: 'Full system access', icon: ShieldCheck, color: 'text-destructive' },
+  { role: 'tenant_admin', label: 'Tenant Admin', desc: 'Organization admin', icon: Crown, color: 'text-primary' },
+  { role: 'manager', label: 'Manager', desc: 'Team management', icon: Briefcase, color: 'text-accent' },
+  { role: 'team_lead', label: 'Team Lead', desc: 'Lead a team', icon: Star, color: 'text-[hsl(var(--status-review))]' },
+  { role: 'team_member', label: 'Team Member', desc: 'Standard access', icon: User, color: 'text-muted-foreground' },
+];
 
 export default function Auth() {
   const { user, loading } = useAuth();
@@ -22,6 +32,8 @@ export default function Auth() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [formattedPhone, setFormattedPhone] = useState('');
   const [otp, setOtp] = useState('');
+
+  const [demoLoading, setDemoLoading] = useState<string | null>(null);
 
   if (loading) {
     return (
@@ -34,6 +46,30 @@ export default function Auth() {
   if (user) {
     return <Navigate to="/dashboard" replace />;
   }
+
+  const handleDemoLogin = async (role: string) => {
+    setDemoLoading(role);
+    try {
+      const { data, error } = await supabase.functions.invoke('demo-login', {
+        body: { role },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      // Set the session from the response
+      if (data?.session) {
+        await supabase.auth.setSession({
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token,
+        });
+        toast.success(`Signed in as ${role.replace('_', ' ')}`);
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to sign in with demo account');
+    } finally {
+      setDemoLoading(null);
+    }
+  };
 
   const formatPhoneNumber = (value: string, code: string) => {
     // Remove all non-digit characters
@@ -268,6 +304,46 @@ export default function Auth() {
             )}
           </CardContent>
         </Card>
+
+        {/* Demo accounts */}
+        <div className="mt-6 space-y-3">
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <Separator className="w-full" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">
+                Try a demo account
+              </span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-2">
+            {demoAccounts.map(({ role, label, desc, icon: Icon, color }) => (
+              <button
+                key={role}
+                onClick={() => handleDemoLogin(role)}
+                disabled={!!demoLoading}
+                className={cn(
+                  'flex items-center gap-3 w-full px-4 py-3 rounded-lg border bg-card text-left transition-all',
+                  'hover:shadow-md hover:border-primary/30',
+                  demoLoading === role && 'opacity-70'
+                )}
+              >
+                <Icon className={cn('w-5 h-5 shrink-0', color)} />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-foreground">{label}</p>
+                  <p className="text-xs text-muted-foreground">{desc}</p>
+                </div>
+                {demoLoading === role ? (
+                  <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                ) : (
+                  <Badge variant="secondary" className="text-xs shrink-0">Demo</Badge>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
 
         <p className="text-center text-sm text-muted-foreground mt-6">
           Secure, scalable task orchestration for enterprise teams
