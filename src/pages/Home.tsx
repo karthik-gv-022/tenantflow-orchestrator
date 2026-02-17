@@ -25,8 +25,8 @@ import { useTasks } from '@/hooks/useTasks';
 function FadeIn({ children, className = '', delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
   return (
     <div
-      className={`opacity-0 animate-fade-in ${className}`}
-      style={{ animationDelay: `${delay}ms`, animationFillMode: 'forwards' }}
+      className={`opacity-0 animate-fade-in-up ${className}`}
+      style={{ animationDelay: `${delay}ms` }}
     >
       {children}
     </div>
