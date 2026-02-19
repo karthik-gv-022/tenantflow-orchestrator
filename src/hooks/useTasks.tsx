@@ -14,11 +14,31 @@ export function useTasks() {
     queryKey: ['tasks', profile?.tenant_id],
     queryFn: async () => {
       if (!profile?.tenant_id) return [];
-      const { data, error } = await supabase
+      // Fetch tasks and projects together, then join profiles separately
+      const { data: tasksData, error } = await supabase
         .from('tasks')
-        .select('*, assignee:profiles!tasks_assignee_id_fkey(*), project:projects(*)')
+        .select('*, project:projects(*)')
         .eq('tenant_id', profile.tenant_id)
         .order('created_at', { ascending: false });
+      if (error) throw error;
+
+      // Fetch profiles for assignees
+      const assigneeIds = [...new Set(tasksData.filter(t => t.assignee_id).map(t => t.assignee_id!))];
+      let profilesMap: Record<string, any> = {};
+      if (assigneeIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('*')
+          .in('user_id', assigneeIds);
+        if (profiles) {
+          profilesMap = Object.fromEntries(profiles.map(p => [p.user_id, p]));
+        }
+      }
+
+      const data = tasksData.map(t => ({
+        ...t,
+        assignee: t.assignee_id ? profilesMap[t.assignee_id] || null : null,
+      }));
       if (error) throw error;
       return data as unknown as Task[];
     },
