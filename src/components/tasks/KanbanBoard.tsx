@@ -34,7 +34,10 @@ export function KanbanBoard({ tasks, onStatusChange, onEdit, onDelete, onTaskCli
   const getTaskPredictionResult = (task: Task): PredictionResult | null => {
     if (task.status === 'completed') return null;
     
-    // Check if we have a stored prediction
+    // Always generate a live prediction so we get recommendations
+    const livePrediction = generatePrediction(task, task.assignee_id);
+
+    // Use stored prediction's scores if available, but keep live recommendations
     const storedPrediction = getTaskPrediction(task.id);
     if (storedPrediction) {
       return {
@@ -44,12 +47,11 @@ export function KanbanBoard({ tasks, onStatusChange, onEdit, onDelete, onTaskCli
                     storedPrediction.confidence_score >= 0.6 ? 'high' :
                     storedPrediction.confidence_score >= 0.4 ? 'medium' : 'low',
         factors: storedPrediction.prediction_factors as any,
-        recommendations: []
+        recommendations: livePrediction.recommendations
       };
     }
     
-    // Generate live prediction for display
-    return generatePrediction(task, task.assignee_id);
+    return livePrediction;
   };
 
   return (

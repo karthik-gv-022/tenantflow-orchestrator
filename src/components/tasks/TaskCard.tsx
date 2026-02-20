@@ -19,7 +19,8 @@ import {
   MoreHorizontal,
   ArrowRight,
   Trash2,
-  Edit
+  Edit,
+  Lightbulb
 } from 'lucide-react';
 
 interface TaskCardProps {
@@ -139,6 +140,18 @@ export function TaskCard({ task, onStatusChange, onEdit, onDelete, onClick, pred
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
+
+        {/* Inline risk recommendation */}
+        {prediction && prediction.predicted_delayed && task.status !== 'completed' && prediction.recommendations.length > 0 && (
+          <div className="mt-3 p-2 rounded-md bg-accent/50 border border-accent">
+            <div className="flex items-start gap-1.5">
+              <Lightbulb className="w-3.5 h-3.5 text-primary mt-0.5 shrink-0" />
+              <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
+                {prediction.recommendations[0]}
+              </p>
+            </div>
+          </div>
+        )}
 
         <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
           <div className="flex items-center gap-3 text-xs text-muted-foreground">
