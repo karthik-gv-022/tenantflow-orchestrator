@@ -89,28 +89,40 @@ function generateMLRecommendations(
   // Feature indices: [priority, dueGap, sla, workload, histRate, complexity, isHigh, hasSla]
   const [priority, dueGap, sla, workload, histRate, complexity] = features;
 
-  if (workload > 0.6) {
-    recommendations.push('Assignee has high workload - consider reassignment');
+  if (workload > 0.8) {
+    recommendations.push('🔄 Reassign this task — assignee is critically overloaded');
+  } else if (workload > 0.6) {
+    recommendations.push('🔄 Consider reassigning or splitting work to balance load');
   }
 
-  if (dueGap < 0.1) {
-    recommendations.push('Very tight deadline - prioritize immediately');
+  if (dueGap < 0.05) {
+    recommendations.push('⏰ Deadline is imminent — escalate and remove all blockers');
+  } else if (dueGap < 0.15) {
+    recommendations.push('📅 Extend the deadline by 2-3 days for realistic completion');
   }
 
-  if (sla > 0.5 && dueGap < 0.3) {
-    recommendations.push('SLA duration exceeds available time');
+  if (sla > 0.5 && dueGap < 0.2) {
+    recommendations.push('⚠️ SLA breach likely — reduce scope or extend deadline immediately');
+  } else if (sla > 0.4 && dueGap < 0.3) {
+    recommendations.push('📋 Break into smaller subtasks to meet SLA incrementally');
   }
 
-  if (histRate < 0.5) {
-    recommendations.push('Assignee has low on-time completion rate');
+  if (histRate < 0.3) {
+    recommendations.push('👥 Pair assignee with a senior team member for support');
+  } else if (histRate < 0.5) {
+    recommendations.push('📊 Schedule a check-in with assignee to identify blockers');
   }
 
   if (priority > 0.5 && probability > 0.7) {
-    recommendations.push('High priority task at significant risk');
+    recommendations.push('🚨 High priority at significant risk — pull in additional resources');
+  }
+
+  if (complexity > 0.7) {
+    recommendations.push('✂️ Task is complex — split into 2-3 smaller deliverables');
   }
 
   if (recommendations.length === 0) {
-    recommendations.push('Monitor task progress closely');
+    recommendations.push('👀 Monitor task progress closely and check in daily');
   }
 
   return recommendations;

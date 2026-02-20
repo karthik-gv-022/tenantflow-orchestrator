@@ -5,6 +5,7 @@ import { RecentTasks } from '@/components/dashboard/RecentTasks';
 import { AlertsPanel } from '@/components/dashboard/AlertsPanel';
 import { ActivityFeed } from '@/components/activity/ActivityFeed';
 import { PredictionAlerts } from '@/components/predictions/PredictionAlerts';
+import { UrgentActionsPanel } from '@/components/dashboard/UrgentActionsPanel';
 import { useTasks } from '@/hooks/useTasks';
 import { useDelayPrediction } from '@/hooks/useDelayPrediction';
 import { useAuth } from '@/hooks/useAuth';
@@ -20,7 +21,7 @@ import {
 export default function Dashboard() {
   const { profile } = useAuth();
   const { tasks, overdueTasks, tasksByStatus, isLoading } = useTasks();
-  const { predictions, tasksAtRisk, getTaskPrediction } = useDelayPrediction();
+  const { predictions, tasksAtRisk, getTaskPrediction, generatePrediction } = useDelayPrediction();
 
   if (isLoading) {
     return (
@@ -96,15 +97,23 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Activity Feed, Prediction Alerts, and Alerts */}
+        {/* Urgent Actions Panel */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <ActivityFeed limit={10} compact />
+          <UrgentActionsPanel
+            tasks={tasks}
+            getPrediction={(task) => generatePrediction(task, task.assignee_id)}
+          />
           <PredictionAlerts 
             tasksAtRisk={tasksAtRisk} 
             predictions={predictions} 
             getTaskPrediction={getTaskPrediction} 
           />
           <AlertsPanel overdueTasks={overdueTasks} tasks={tasks} />
+        </div>
+
+        {/* Activity Feed */}
+        <div className="grid grid-cols-1 gap-6">
+          <ActivityFeed limit={10} compact />
         </div>
       </div>
     </DashboardLayout>

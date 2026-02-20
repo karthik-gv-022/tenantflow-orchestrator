@@ -111,28 +111,40 @@ function generateRecommendations(factors: PredictionFactors, predictedDelayed: b
   
   if (!predictedDelayed) return ['Task is on track for on-time completion'];
   
-  if (factors.workloadScore > 0.6) {
-    recommendations.push('Consider reassigning to reduce workload imbalance');
+  if (factors.workloadScore > 0.8) {
+    recommendations.push('🔄 Reassign this task — assignee is critically overloaded with active work');
+  } else if (factors.workloadScore > 0.6) {
+    recommendations.push('🔄 Consider reassigning or splitting this task to balance assignee workload');
   }
   
-  if (factors.dueDateGapScore > 0.7) {
-    recommendations.push('Deadline is approaching - prioritize this task');
+  if (factors.dueDateGapScore > 0.8) {
+    recommendations.push('⏰ Deadline is imminent — escalate priority and remove blockers now');
+  } else if (factors.dueDateGapScore > 0.7) {
+    recommendations.push('📅 Extend the deadline by 2-3 days to allow realistic completion');
   }
   
-  if (factors.slaRiskScore > 0.7) {
-    recommendations.push('SLA timeline is at risk - consider extending deadline');
+  if (factors.slaRiskScore > 0.8) {
+    recommendations.push('⚠️ SLA breach likely — extend deadline or reduce task scope immediately');
+  } else if (factors.slaRiskScore > 0.6) {
+    recommendations.push('📋 Break this into smaller subtasks to meet SLA incrementally');
   }
   
-  if (factors.historicalScore > 0.6) {
-    recommendations.push('Assignee may benefit from additional support');
+  if (factors.historicalScore > 0.7) {
+    recommendations.push('👥 Pair assignee with a senior team member for hands-on support');
+  } else if (factors.historicalScore > 0.5) {
+    recommendations.push('📊 Schedule a quick check-in with assignee to identify blockers early');
   }
   
-  if (factors.priorityScore > 0.7) {
-    recommendations.push('High priority task requires immediate attention');
+  if (factors.priorityScore > 0.7 && factors.dueDateGapScore > 0.5) {
+    recommendations.push('🚨 High priority at risk — consider pulling in additional resources');
+  }
+
+  if (factors.workloadScore > 0.5 && factors.slaRiskScore > 0.5) {
+    recommendations.push('✂️ Split into 2-3 smaller deliverables to parallelize work');
   }
   
   if (recommendations.length === 0) {
-    recommendations.push('Monitor task progress closely');
+    recommendations.push('👀 Monitor task progress closely and check in daily');
   }
   
   return recommendations;
