@@ -9,7 +9,6 @@ from sqlalchemy.orm import Session
 
 from .. import models, schemas
 from ..dependencies import get_current_active_user, get_db
-from ..services.ml import ml_service
 
 router = APIRouter(tags=["analytics", "ml"])
 
@@ -132,24 +131,6 @@ def delay_rate(
         or 0
     )
     return {"delay_rate": (delayed / total) if total else 0.0}
-
-
-@router.post("/predict-delay", response_model=schemas.DelayPredictOutput)
-def predict_delay(payload: schemas.DelayPredictInput):
-    features = ml_service.feature_engineering(
-        complexity_score=payload.complexity_score,
-        workload_count=payload.workload_count,
-        past_delay_count=payload.past_delay_count,
-        average_completion_time=payload.average_completion_time,
-    )
-    probability = ml_service.predict_delay_probability(features)
-    return {
-        "delay_probability": probability,
-        "risk_level": ml_service.risk_level(probability),
-        "accuracy": ml_service.metrics["accuracy"],
-        "precision": ml_service.metrics["precision"],
-        "recall": ml_service.metrics["recall"],
-    }
 
 
 @router.post("/federated/train-local-model")
