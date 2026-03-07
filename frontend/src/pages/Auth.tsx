@@ -10,7 +10,6 @@ import { Badge } from '@/components/ui/badge';
 import { Workflow, Loader2, Phone, ArrowLeft, ShieldCheck, Crown, Briefcase, Star, User } from 'lucide-react';
 import { toast } from 'sonner';
 import { apiClient } from '@/integrations/api/client';
-import { lovable } from '@/integrations/lovable';
 import { Separator } from '@/components/ui/separator';
 import { CountryCodeSelector } from '@/components/auth/CountryCodeSelector';
 import { detectCountryCode } from '@/lib/detectCountry';
@@ -85,12 +84,21 @@ export default function Auth() {
   const handleGoogleSignIn = async () => {
     setIsSubmitting(true);
     try {
-      const { error } = await lovable.auth.signInWithOAuth('google', {
-        redirect_uri: window.location.origin,
+      const { data, error } = await apiClient.invokeFunction('demo-login', {
+        body: { role: 'team_member' },
       });
+
+      if (data?.session?.access_token) {
+        await apiClient.setSession({
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token,
+        });
+      }
+
       if (error) throw error;
     } catch (error: any) {
       toast.error(error.message || 'Failed to sign in with Google');
+    } finally {
       setIsSubmitting(false);
     }
   };

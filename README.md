@@ -1,73 +1,201 @@
-# Welcome to your Lovable project
+# TenantFlow Orchestrator
 
-## Project info
+[![Frontend](https://img.shields.io/badge/Frontend-React%20%2B%20Vite-61DAFB?logo=react&logoColor=white)](frontend)
+[![Backend](https://img.shields.io/badge/Backend-FastAPI-009688?logo=fastapi&logoColor=white)](backend)
+[![Database](https://img.shields.io/badge/Database-PostgreSQL-336791?logo=postgresql&logoColor=white)](#)
+[![ML](https://img.shields.io/badge/ML-Logistic%20Regression-5C6BC0)](#machine-learning)
+[![Docker](https://img.shields.io/badge/Container-Docker-2496ED?logo=docker&logoColor=white)](#docker-setup)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](#license)
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+TenantFlow Orchestrator is a multi-tenant intelligent task management platform for organizations to plan work, coordinate teams, and track performance. The system combines a modern full-stack architecture with AI-driven delay prediction and analytics to support data-informed project execution.
 
-## How can I edit this code?
+## Table of Contents
 
-There are several ways of editing your application.
+- [Overview](#overview)
+- [Tech Stack](#tech-stack)
+- [Architecture](#architecture)
+- [Project Structure](#project-structure)
+- [Features](#features)
+- [Installation Guide](#installation-guide)
+- [API Overview](#api-overview)
+- [Machine Learning](#machine-learning)
+- [Screenshots](#screenshots)
+- [Future Improvements](#future-improvements)
+- [Author](#author)
+- [License](#license)
 
-**Use Lovable**
+## Overview
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+TenantFlow Orchestrator is designed for multi-tenant environments where multiple organizations securely share the same platform while maintaining strict data isolation. It provides:
 
-Changes made via Lovable will be committed automatically to this repo.
+- Structured project and task lifecycle management
+- Team performance visibility through analytics
+- Delay-risk prediction using machine learning
+- Scalable deployment through Docker and Docker Compose
 
-**Use your preferred IDE**
+## Tech Stack
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Frontend
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- React
+- Vite
+- TypeScript
+- TailwindCSS
+- ShadCN UI
 
-Follow these steps:
+### Backend
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+- FastAPI (Python)
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+### Database
 
-# Step 3: Install the necessary dependencies.
-npm i
+- PostgreSQL
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+### Machine Learning
+
+- Logistic Regression model for task delay prediction
+
+### Containerization
+
+- Docker
+- Docker Compose
+
+### Version Control
+
+- Git
+- GitHub
+
+## Architecture
+
+TenantFlow Orchestrator follows a modern full-stack architecture:
+
+- Frontend (React) communicates with the FastAPI REST API
+- FastAPI handles authentication, tenant isolation, business logic, and analytics endpoints
+- Backend services interact with PostgreSQL for persistence
+- ML prediction service provides delay-risk inference
+- Access is controlled through role-based policies and multi-tenant boundaries
+
+```text
+Frontend (React + Vite)
+	|
+	v
+FastAPI REST API
+   |            \
+   v             v
+PostgreSQL     ML Prediction Service
+```
+
+## Project Structure
+
+```text
+tenantflow-orchestrator
+│
+├── frontend
+│   ├── src
+│   ├── public
+│   ├── package.json
+│   └── vite.config.ts
+│
+├── backend
+│   ├── app
+│   │   ├── routers
+│   │   ├── services
+│   │   │   └── ml.py
+│   │   ├── models.py
+│   │   ├── schemas.py
+│   │   ├── database.py
+│   │   └── main.py
+│   └── requirements.txt
+│
+├── docker-compose.yml
+├── .gitignore
+└── README.md
+```
+
+## Features
+
+- Multi-Tenant Architecture
+- Role-Based Access Control
+- Intelligent Task Assignment
+- AI Delay Prediction
+- Task Analytics Dashboard
+- Kanban Task Management
+- Notifications & Alerts
+- Federated Learning Simulation
+- Dockerized Deployment
+
+## Installation Guide
+
+### Backend Setup
+
+```bash
+cd backend
+pip install -r requirements.txt
+uvicorn app.main:app --host 0.0.0.0 --port 8000
+```
+
+Backend URL:
+
+```text
+http://localhost:8000
+```
+
+### Frontend Setup
+
+```bash
+cd frontend
+npm install
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+Frontend URL:
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```text
+http://localhost:5173
+```
 
-**Use GitHub Codespaces**
+### Docker Setup
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+```bash
+docker-compose up --build
+```
 
-## What technologies are used for this project?
+## API Overview
 
-This project is built with:
+Representative endpoints:
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+- `POST /auth/login`
+- `GET /tasks`
+- `POST /tasks`
+- `GET /analytics`
+- `POST /predict-delay`
 
-## How can I deploy this project?
+## Machine Learning
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+The platform uses a Logistic Regression model to estimate the probability that a task will be delayed. Prediction signals include:
 
-## Can I connect a custom domain to my Lovable project?
+- task complexity
+- assigned workload
+- historical delays
+- completion time trends
 
-Yes, you can!
+## Screenshots
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+- Dashboard Screenshot (placeholder)
+- Task Board Screenshot (placeholder)
+- Analytics Dashboard Screenshot (placeholder)
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+## Future Improvements
+
+- Real-time notifications
+- Kubernetes deployment
+- Model retraining pipeline
+- Advanced analytics
+
+## Author
+
+**Karthik GV**
+
+## License
+
+This project is licensed under the MIT License.
